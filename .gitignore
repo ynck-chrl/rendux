@@ -9,4 +9,6 @@
 !rendux/
 !rendux/**
 
+!.github/
+!.github/**
 
