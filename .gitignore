@@ -4,6 +4,10 @@
 # Keep this file
 !.gitignore
 
+# Allow image files
+!*.jpg
+!*.png
+
 
 # Allow specific directories and their contents
 !rendux/
