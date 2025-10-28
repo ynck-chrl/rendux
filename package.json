@@ -1,0 +1,30 @@
+{
+  "name": "@ynck/rendux",
+  "version": "0.93.2",
+  "type": "module",
+  "main": "./dist/rendux.cjs.min.js",
+  "module": "./dist/rendux.min.js",
+  "exports": {
+    ".": {
+      "import": "./dist/rendux.min.js",
+      "require": "./dist/rendux.cjs.min.js"
+    }
+  },
+  "author": "Yannick J.A. CHARLERY",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ynck-chrl/rendux"
+  },
+  "homepage": "https://github.com/ynck-chrl/rendux",
+  "bugs": {
+    "url": "https://github.com/ynck-chrl/rendux/issues"
+  },
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "SEE LICENSE IN LICENSE-NONCOMMERCIAL.md",
+  "files": [
+    "**/*"
+  ]
+}
