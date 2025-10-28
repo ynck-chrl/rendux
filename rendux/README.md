@@ -16,7 +16,7 @@
 ### Via NPM
 
 ```bash
-npm install rendux
+npm install @ynck/rendux
 ```
 
 Then import in your project:
@@ -26,7 +26,7 @@ Then import in your project:
 import { rendux } from '@ynck/rendux';
 
 // CommonJS
-const { rendux } = require('rendux');
+const { rendux } = require('@ynck/rendux');
 ```
 
 ### Via CDN (No Build Step)
@@ -41,7 +41,7 @@ const { rendux } = require('rendux');
 
 <!-- Or use specific version -->
 <script type="module">
-  import { rendux } from 'https://unpkg.com/@ynck/rendux@0.93.0/dist/rendux.min.js';
+  import { rendux } from 'https://unpkg.com/@ynck/rendux@0.93.2/dist/rendux.min.js';
 </script>
 ```
 
@@ -55,7 +55,7 @@ const { rendux } = require('rendux');
 
 <!-- Or with specific version -->
 <script type="module">
-  import { rendux } from 'https://esm.sh/@ynck/rendux@0.93.0'
+  import { rendux } from 'https://esm.sh/@ynck/rendux@0.93.2'
 </script>
 ```
 
@@ -68,7 +68,7 @@ const { rendux } = require('rendux');
 
 <!-- Or with specific version -->
 <script type="module">
-  import { rendux } from 'https://cdn.skypack.dev/@ynck/rendux@0.93.0';
+  import { rendux } from 'https://cdn.skypack.dev/@ynck/rendux@0.93.2';
 </script>
 ```
 
@@ -348,7 +348,7 @@ You can also use rendux with plain HTML:
 
 ```js
 // Import using CommonJS
-const { rendux } = require('rendux');
+const { rendux } = require('@ynck/rendux');
 
 // Create a state object with your data
 const state = {

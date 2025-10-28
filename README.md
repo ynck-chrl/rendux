@@ -16,7 +16,7 @@
 ### Via NPM
 
 ```bash
-npm install rendux
+npm install @ynck/rendux
 ```
 
 Then import in your project:
@@ -26,7 +26,7 @@ Then import in your project:
 import { rendux } from '@ynck/rendux';
 
 // CommonJS
-const { rendux } = require('rendux');
+const { rendux } = require('@ynck/rendux');
 ```
 
 ### Via CDN (No Build Step)
@@ -348,7 +348,7 @@ You can also use rendux with plain HTML:
 
 ```js
 // Import using CommonJS
-const { rendux } = require('rendux');
+const { rendux } = require('@ynck/rendux');
 
 // Create a state object with your data
 const state = {
