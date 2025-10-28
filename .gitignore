@@ -4,6 +4,9 @@
 # Keep this file
 !.gitignore
 
+# Local helper scripts
+publish-dist.sh
+
 # Allow image files
 !*.jpg
 !*.png

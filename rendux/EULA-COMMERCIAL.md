@@ -29,4 +29,4 @@ This Commercial EULA ("Agreement") is a legal contract between you ("Licensee") 
 8. Entire Agreement.  
    This Agreement constitutes the entire agreement between the parties and supersedes all prior or contemporaneous agreements.
 
-For inquiries or to purchase a commercial license, contact: ynck.chrl@pm.me
+For inquiries or to purchase a commercial license, contact: ynck.chrl@protonmail.com

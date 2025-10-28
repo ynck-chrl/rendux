@@ -1,6 +1,6 @@
 {
   "name": "@ynck/rendux",
-  "version": "0.92.1",
+  "version": "0.93.2",
   "type": "module",
   "main": "./dist/rendux.cjs.min.js",
   "module": "./dist/rendux.min.js",
@@ -8,14 +8,6 @@
     ".": {
       "import": "./dist/rendux.min.js",
       "require": "./dist/rendux.cjs.min.js"
-    },
-    "./plugin/x-tooltip": {
-      "import": "./dist/plugin/x-tooltip.min.js",
-      "require": "./dist/plugin/x-tooltip.cjs.min.js"
-    },
-    "./plugin/i18n": {
-      "import": "./dist/plugin/i18n.min.js",
-      "require": "./dist/plugin/i18n.cjs.min.js"
     }
   },
   "author": "Yannick J.A. CHARLERY",

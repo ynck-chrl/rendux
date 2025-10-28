@@ -1,23 +1,139 @@
 ![rendux Logo](https://raw.githubusercontent.com/ynck-chrl/rendux/master/rendux-logo.jpg)
 
-Source-available (non‑commercial).
-Commercial licenses via EULA (See EULA-COMMERCIAL.md for commercial use).
-
-
 # rendux
 
 ## Introduction
 
-`rendux` is a lightweight dependency-free templating engine designed for use within Custom Elements (Web Components). It provides reactive templating features through directives, making it easy to create dynamic, state-driven components without a full framework.
+`rendux` is a lightweight dependency-free templating engine designed for use within Custom Elements (Web Components) and plain HTML. It provides reactive templating features through directives, making it easy to create dynamic, state-driven components without a full framework.
 
 ### Size
 
-- Minified: 13.0 KB (ESM), 13.0 KB (CJS)
-- Gzipped: 4.7 KB
+- Minified: 13.2 KB (ESM), 13.3 KB (CJS)
+- Gzipped: ~4.7 KB
+
+## Installation
+
+### Via NPM
+
+```bash
+npm install rendux
+```
+
+Then import in your project:
+
+```js
+// ES Module (recommended)
+import { rendux } from '@ynck/rendux';
+
+// CommonJS
+const { rendux } = require('rendux');
+```
+
+### Via CDN (No Build Step)
+
+#### unpkg
+
+```html
+<!-- ES Module -->
+<script type="module">
+  import { rendux } from 'https://unpkg.com/@ynck/rendux@latest/dist/rendux.min.js';
+</script>
+
+<!-- Or use specific version -->
+<script type="module">
+  import { rendux } from 'https://unpkg.com/@ynck/rendux@0.93.2/dist/rendux.min.js';
+</script>
+```
+
+#### esm.sh
+
+```html
+<!-- Latest version -->
+<script type="module">
+  import { rendux } from 'https://esm.sh/@ynck/rendux@latest'
+</script>
+
+<!-- Or with specific version -->
+<script type="module">
+  import { rendux } from 'https://esm.sh/@ynck/rendux@0.93.2'
+</script>
+```
+
+#### Skypack
+
+```html
+<script type="module">
+  import { rendux } from 'https://cdn.skypack.dev/@ynck/rendux'
+</script>
+
+<!-- Or with specific version -->
+<script type="module">
+  import { rendux } from 'https://cdn.skypack.dev/@ynck/rendux@0.93.2';
+</script>
+```
+
+### From Source (Local Development)
+
+Clone the repository and use the source directly:
+
+```bash
+git clone https://github.com/ynck-chrl/rendux.git
+cd rendux
+```
+
+Then import from source:
+
+```html
+<script type="module">
+  import { rendux } from './src/rendux.js';
+</script>
+```
+
+Or if using in a Node.js project:
+
+```js
+import { rendux } from './path/to/rendux/src/rendux.js';
+```
+
+### Build Outputs
+
+When installed via NPM, rendux provides multiple build outputs:
+
+- **ESM (ES Modules)**: `dist/rendux.min.js` - For modern browsers and bundlers
+- **CommonJS**: `dist/rendux.cjs.min.js` - For Node.js and legacy tools
+- **Source Maps**: Available for all builds (`.map` files)
+
+The `package.json` exports field automatically selects the correct build:
+
+```json
+{
+  "exports": {
+    ".": {
+      "import": "./dist/rendux.min.js",
+      "require": "./dist/rendux.cjs.min.js"
+    }
+  }
+}
+```
+
+### TypeScript Support
+
+TypeScript definitions are not yet included. You can create a declaration file:
+
+```typescript
+// rendux.d.ts
+declare module 'rendux' {
+  export function rendux(state: any, element: HTMLElement): void;
+  export function use(plugin: any): typeof rendux;
+  // Add other exports as needed
+}
+```
+
+
 
 ## Core Concepts
 
-`rendux` is called within a Custom Element's context and operates on its shadow DOM. It provides several directives to handle common UI patterns:
+`rendux` is a function that takes a state object and a DOM element, then processes templating directives within that element. It provides several directives to handle common UI patterns:
 
 - `x-if` for conditional rendering
 - `x-for` for list rendering
@@ -25,7 +141,7 @@ Commercial licenses via EULA (See EULA-COMMERCIAL.md for commercial use).
 - `x-*` for dynamic attributes
 - `render` for text content interpolation
 - `@event` for event handling
-- `render.plugin` for plugin execution
+- `render.plugin` for custom plugin execution
 
 ## Logging System
 
@@ -40,60 +156,79 @@ rendux includes a flexible logging system controlled by the `logs` attribute. Yo
 ```
 
 Available log categories:
-- `plugins`: Plugin execution and results
 - `for`: x-for loop processing
 - `if`: x-if conditional rendering
 - `attr`: x-attr attribute processing
 - `class`: x-class processing
 - `render`: Text content rendering
+- `plugins`: Plugin execution and results
 
 ## Basic Usage
 
 ### With Custom Elements (Web Components)
 
-#### With Shadow DOM
+#### With Internal State and Shadow DOM
 
 ```js
+import { rendux } from 'rendux';
+
 class MyElement extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: 'open' });
+    
+    // Internal component state
+    this.state = {
+      title: 'User List',
+      users: [
+        { name: 'Alice', active: true },
+        { name: 'Bob', active: false }
+      ]
+    };
   }
-
-  // Example component state
-  users = [
-    { name: 'Alice', active: true },
-    { name: 'Bob', active: false }
-  ];
 
   connectedCallback() {
     this.shadowRoot.innerHTML = `
       <div>
-        <h2 render="title">User List</h2>
+        <h2 render="title"></h2>
         <template x-for="user of users">
           <div x-class="(active, user.active)">
             <span render="user.name"></span>
+            <button @click="toggleUser(user)">Toggle</button>
           </div>
         </template>
       </div>
     `;
-    rendux.call(this);
+    // Pass state and element - renders into shadowRoot
+    rendux(this.state, this);
+  }
+
+  toggleUser(user) {
+    user.active = !user.active;
+    // Re-render after state change
+    rendux(this.state, this);
   }
 }
 ```
 
-#### Without Shadow DOM (plain Light DOM)
+#### With Internal State and Light DOM
 
 ```js
-import { rendux } from './src/rendux.js';
+import { rendux } from 'rendux';
 
 class MyElement extends HTMLElement {
-  // Example component state
-  title = 'User List';
-  users = [
-    { name: 'Alice', active: true },
-    { name: 'Bob', active: false }
-  ];
+  constructor() {
+    super();
+    
+    // Internal component state
+    this.state = {
+      title: 'User List',
+      users: [
+        { name: 'Alice', active: true },
+        { name: 'Bob', active: false }
+      ]
+    };
+  }
 
   connectedCallback() {
     // Render directly into light DOM (no shadow root)
@@ -108,20 +243,60 @@ class MyElement extends HTMLElement {
         </template>
       </div>
     `;
-    rendux.call(this); // uses 'this' as root in Light DOM
+    // Pass state and element - renders into element itself (light DOM)
+    rendux(this.state, this);
   }
 
   toggleUser(user) {
     user.active = !user.active;
-    rendux.call(this); // re-render after state change
+    // Re-render after state change
+    rendux(this.state, this);
   }
 }
 ```
 
+#### With External/Global State
+
+```js
+import { rendux } from 'rendux';
+import { state } from './state.js'; // External state (could be from a store)
+
+class MyGlobalUsers extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `
+      <div>
+        <h2 render="title"></h2>
+        <template x-for="(user, userIndex) of users">
+          <div x-class="(active, user.active) (non-active, !user.active)">
+            <span render="user.name"></span>
+            <span render="userIndex"></span>
+            <button @click="toggleUser(user)">Toggle</button>
+          </div>
+        </template>
+      </div>
+    `;
+    // Use external state with this element
+    rendux(state, this);
+  }
+
+  toggleUser(user) {
+    user.active = !user.active;
+    // Re-render with external state
+    rendux(state, this);
+  }
+}
+```
+
+**Key Points:**
+- **First argument**: Always the state object (can be `this.state`, an external state, or any object/array)
+- **Second argument**: Always the DOM element (`this` in Custom Elements)
+- **Rendering target**: If element has `shadowRoot`, renders into it; otherwise renders into the element itself (light DOM)
+- **Template expressions**: Reference properties directly from the state object (e.g., `title`, `users`, not `state.title`)
+
 
 ### With Plain HTML
 
-You can also use rendux with plain HTML by creating a context object:
+You can also use rendux with plain HTML:
 
 ```html
 <!DOCTYPE html>
@@ -130,32 +305,32 @@ You can also use rendux with plain HTML by creating a context object:
   <script type="module">
     import { rendux } from './src/rendux.js';
     
-    // Create a context object with your data and methods
-    const context = {
+    // Create a state object with your data
+    const state = {
       title: 'User List',
       users: [
         { name: 'Alice', active: true },
         { name: 'Bob', active: false }
-      ],
-      
-      // Add methods if needed
-      toggleUser(user) {
-        user.active = !user.active;
-        rendux.call(this); // Re-render after state change
-      }
+      ]
     };
     
-    // Call rendux with the context
-    rendux.call(context);
+    // Get the container element
+    const container = document.querySelector('#app');
+    
+    // Initial render
+    rendux(state, container);
+    
+    // To update after state changes:
+    // state.users.push({ name: 'Charlie', active: true });
+    // rendux(state, container);
   </script>
 </head>
 <body>
-  <div>
+  <div id="app">
     <h2 render="title">User List</h2>
     <template x-for="user of users">
       <div x-class="(active, user.active)">
         <span render="user.name"></span>
-        <button @click="toggleUser(user)">Toggle</button>
       </div>
     </template>
   </div>
@@ -164,19 +339,19 @@ You can also use rendux with plain HTML by creating a context object:
 ```
 
 **Key Points for Plain HTML Usage:**
-- Create a context object with your data and methods
-- Use `rendux.call(context)` to bind the context
-- Call `rendux.call(context)` again after state changes to re-render
-- The context object becomes the `this` reference in all expressions
+- Create a state object with your data
+- Pass the state and container element to `rendux(state, element)`
+- Call `rendux(state, element)` again after state changes to re-render
+- Event handlers (like `@click`) can reference methods if you add them to the element's prototype or use inline expressions
 
 ### With CommonJS (Node.js)
 
 ```js
 // Import using CommonJS
-const { rendux } = require('./dist/rendux.cjs');
+const { rendux } = require('rendux');
 
-// Create a context with your data
-const context = {
+// Create a state object with your data
+const state = {
   title: 'Server Context',
   users: [
     { name: 'Alice', active: true },
@@ -188,7 +363,7 @@ const context = {
 // For Node.js, use with a DOM implementation like jsdom
 const { JSDOM } = require('jsdom');
 const dom = new JSDOM(`
-  <div>
+  <div id="app">
     <h2 render="title">User List</h2>
     <template x-for="user of users">
       <div x-class="(active, user.active)">
@@ -201,8 +376,11 @@ const dom = new JSDOM(`
 // Set up global document for rendux
 global.document = dom.window.document;
 
-// Call rendux with the context
-rendux.call(context, dom.window.document.body);
+// Get the container element
+const container = dom.window.document.querySelector('#app');
+
+// Call rendux with state and element
+rendux(state, container);
 ```
 
 **When to Use `rendux.cjs`:**
@@ -219,7 +397,58 @@ Use the CommonJS build (`dist/rendux.cjs`) in these scenarios:
 
 For modern projects with native ESM support, prefer the ESM build (`dist/rendux.js`) instead.
 
+### With Reactive State Libraries
 
+rendux works seamlessly with reactive state management libraries. Here's an example using a Proxy-based reactive state:
+
+```js
+import { rendux } from 'rendux';
+import { restate } from 'restate'; // Or any reactive state library
+
+// Create reactive state
+const state = restate({
+  title: 'User List',
+  users: [
+    { name: 'Alice', active: true },
+    { name: 'Bob', active: false }
+  ]
+});
+
+class MyComponent extends HTMLElement {
+  connectedCallback() {
+    this.innerHTML = `
+      <div>
+        <h2 render="title"></h2>
+        <template x-for="user of users">
+          <div x-class="(active, user.active)">
+            <span render="user.name"></span>
+            <button @click="toggleUser(user)">Toggle</button>
+          </div>
+        </template>
+      </div>
+    `;
+    
+    // Initial render
+    rendux(state, this);
+    
+    // Set up automatic re-rendering on state changes
+    state.$onChange(() => {
+      rendux(state, this);
+    });
+  }
+  
+  toggleUser(user) {
+    // Just mutate - reactive state will trigger re-render
+    user.active = !user.active;
+  }
+}
+```
+
+**Benefits of Reactive State:**
+- Automatic re-rendering when state changes
+- No need to manually call `rendux()` after every update
+- Works with any Proxy-based reactive library
+- rendux handles circular references and deep objects safely
 
 ## Directives
 
@@ -318,70 +547,182 @@ The event object is automatically available in handlers as `event`.
 
 ## Plugin System
 
-rendux includes an integrated plugin system that allows you to extend templating functionality.
+rendux includes a powerful plugin system that allows you to extend templating functionality with custom directives.
 
 ### Using Plugins
 
-```js
-import { rendux } from './src/rendux.js';
-import { i18nPlugin } from './src/plugins/plugin-i18n.js';
-import { xTooltip } from './src/plugins/plugin-x-tooltip.js';
+Plugins are registered using the `use()` method, which is chainable:
 
-// Register plugins (chainable)
+```js
+import { rendux } from 'rendux';
+import { myCustomPlugin } from './plugins/my-plugin.js';
+
+// Register plugin (chainable)
+rendux.use(myCustomPlugin);
+
+// Or chain multiple plugins
 rendux
-  .use(i18nPlugin({
-    translations: {
-      en: { greeting: 'Hello!' },
-      fr: { greeting: 'Bonjour!' }
-    }
-  }))
-  .use(xTooltip);
+  .use(plugin1)
+  .use(plugin2)
+  .use(plugin3);
 ```
 
-### Using Plugin Directives
+### Using Plugin Directives in Templates
+
+Once registered, plugins can be used with the `render.pluginName` attribute:
 
 ```html
-<!-- i18n Plugin -->
+<!-- Using a custom formatter plugin -->
+<span render.format="user.name">Default Name</span>
+
+<!-- Using a custom i18n plugin -->
 <p render.i18n="greeting">Hello!</p>
 
-<!-- Tooltip Plugin -->
-<button x-tooltip="'Click to save'">Save</button>
+<!-- Generic plugin syntax -->
+<span render.plugin="myPlugin('arg1', 'arg2')">Fallback</span>
 ```
 
-### Building Custom Plugins
+### Creating Custom Plugins
 
-A plugin is an object with the following structure:
+A plugin is an object with specific properties and methods:
 
 ```js
 export const myPlugin = {
-  // Required properties
-  name: 'pluginName',     // Used in render.pluginName or x-pluginName
-  target: 'attribute',    // Optional: 'attribute' for x-* plugins
-  execute(el, value, ctx) {
-    // Main plugin logic
-    return 'result';      // Optional: string to use as element content
+  // Required: Plugin name (used in render.pluginName)
+  name: 'myPlugin',
+  
+  // Required: Main execution function
+  execute(value, ...args) {
+    // Process the value and return result
+    // The returned string becomes the element's textContent
+    return processedValue;
   },
-
-  // Optional lifecycle hooks (in order of execution)
+  
+  // Optional: Called once before any plugin executes
   onBeforeRender(root, component) {
-    // Called ONCE at the start of rendux()
-    // Use for initialization, setup, or capturing initial state
+    // Initialize plugin state
+    // Access to root element and component context
   },
   
-  onBeforeExecute(el, rawValue, ctx) {
-    // Called BEFORE each plugin execution on an element
-    // Use for element-specific setup or validation
+  // Optional: Called before each element execution
+  onBeforeExecute(element, rawValue, context) {
+    // Setup for this specific element
+    // Can modify element attributes, add classes, etc.
   },
   
-  onAfterExecute(el, rawValue, ctx) {
-    // Called AFTER each plugin execution on an element
-    // Use for cleanup or post-processing of element changes
+  // Optional: Called after each element execution
+  onAfterExecute(element, rawValue, context) {
+    // Cleanup or post-processing for this element
   },
   
-  onAfterRender(root, ctx) {
-    // Called ONCE at the end of rendux()
-    // Use for final cleanup or post-render operations
-    // This hook is async - can return a Promise
+  // Optional: Called once after all plugins execute (can be async)
+  async onAfterRender(root, context) {
+    // Final cleanup or async operations
+    // This is the only lifecycle hook that supports async
+  }
+};
+```
+
+### Plugin Example: Text Formatter
+
+Here's a complete example of a text formatting plugin:
+
+```js
+export const formatPlugin = {
+  name: 'format',
+  
+  execute(value, format = 'uppercase') {
+    if (typeof value !== 'string') {
+      value = String(value);
+    }
+    
+    switch(format) {
+      case 'uppercase':
+        return value.toUpperCase();
+      case 'lowercase':
+        return value.toLowerCase();
+      case 'capitalize':
+        return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+      case 'reverse':
+        return value.split('').reverse().join('');
+      default:
+        return value;
+    }
+  }
+};
+
+// Register the plugin
+rendux.use(formatPlugin);
+```
+
+Usage in template:
+
+```html
+<span render.format="user.name, 'capitalize'">John Doe</span>
+<span render.format="title, 'uppercase'">Hello World</span>
+```
+
+### Plugin Example: Conditional Formatter
+
+A more advanced plugin with lifecycle hooks:
+
+```js
+export const conditionalPlugin = {
+  name: 'showIf',
+  
+  onBeforeRender(root, component) {
+    // Store original content for elements using this plugin
+    this.originalContent = new WeakMap();
+  },
+  
+  execute(condition, trueValue, falseValue = '') {
+    // Evaluate condition and return appropriate value
+    return condition ? trueValue : falseValue;
+  },
+  
+  onAfterExecute(element, rawValue, context) {
+    // Add a custom class based on the condition
+    const condition = rawValue.split(',')[0].trim();
+    if (condition) {
+      element.classList.add('visible');
+    } else {
+      element.classList.remove('visible');
+    }
+  }
+};
+```
+
+### Plugin Best Practices
+
+1. **Validate Inputs**: Always validate and sanitize plugin inputs
+2. **Handle Errors Gracefully**: Use try-catch to prevent plugin errors from breaking rendering
+3. **Keep Plugins Focused**: Each plugin should do one thing well
+4. **Document Parameters**: Clearly document what arguments your plugin expects
+5. **Return Strings**: The `execute()` method should return a string (or value that converts to string)
+6. **Avoid Side Effects**: Minimize DOM manipulation outside of the element being processed
+
+### Security Considerations for Plugins
+
+When creating plugins, be mindful of security:
+
+```js
+export const safePlugin = {
+  name: 'safe',
+  
+  execute(userInput) {
+    // Validate input type
+    if (typeof userInput !== 'string') {
+      return '';
+    }
+    
+    // Sanitize HTML entities
+    return userInput.replace(/[<>&"']/g, char => ({
+      '<': '&lt;',
+      '>': '&gt;',
+      '&': '&amp;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[char]);
   }
 };
 ```
@@ -432,31 +773,140 @@ render="window.location = 'evil.com'" ✗ (window not accessible)
 
 **Safe Template Processing**
 - Template elements (`<template x-for>`) use `.content` property, not innerHTML
-- Plugin system processes attributes safely without executing embedded scripts
+- Attributes are processed safely without executing embedded scripts
 - Event handlers are properly scoped and don't use string-to-function conversion
 
 ### Best Practices for Secure Usage
 
-1. **Validate Plugin Inputs**: When creating custom plugins, validate and sanitize inputs
+1. **Validate Inputs**: Always validate and sanitize user inputs before adding them to state
 2. **Context Isolation**: Each component maintains its own isolated context
 3. **No Script Injection**: User data in expressions is evaluated safely, not executed as code
+4. **Safe State Updates**: Mutate state objects directly and call `rendux()` to re-render, avoiding innerHTML manipulation
 
 ```js
-// Safe plugin example
-export const safePlugin = {
+// Safe state update example
+class MyComponent extends HTMLElement {
+  constructor() {
+    super();
+    this.state = {
+      userInput: ''
+    };
+  }
+  
+  handleInput(event) {
+    // Validate and sanitize
+    const value = event.target.value;
+    if (typeof value === 'string' && value.length < 100) {
+      this.state.userInput = value.trim();
+      rendux(this.state, this); // Safe re-render
+    }
+  }
+}
+```
+
+This security model makes rendux suitable for applications handling user-generated content while maintaining the flexibility of a templating engine.
+
+### Security Audit Summary
+
+rendux has been designed and audited to ensure maximum security for web applications:
+
+#### Core Engine Security ✓
+
+**No Dangerous Functions**
+- ✓ No `eval()` or `Function()` constructor used
+- ✓ No `innerHTML` for dynamic content
+- ✓ No `outerHTML` manipulation
+- ✓ No `document.write()`
+
+**Safe Content Rendering**
+- ✓ All dynamic content uses `textContent` (auto-escapes HTML)
+- ✓ User input like `<script>alert('XSS')</script>` is rendered as escaped text, never executed
+- ✓ Plugin outputs are also rendered via `textContent`
+
+**Sandboxed Expression Evaluator**
+- ✓ Custom parser with whitelisted globals only
+- ✓ Allowed: `Math`, `Date`, `Number`, `String`, `Boolean`, `JSON`, `Array`, `parseInt`, `parseFloat`, `isFinite`
+- ✗ Blocked: `window`, `document`, `eval`, `fetch`, `XMLHttpRequest`, `localStorage`, `location`
+
+**Safe Template Processing**
+- ✓ Templates use `.content` property (no innerHTML)
+- ✓ Event handlers use sandboxed evaluator (no string-to-function conversion)
+
+#### Plugin System Security
+
+**Framework Security ✓**
+- ✓ Plugin output automatically escaped via `textContent`
+- ✓ Plugin execution wrapped in try-catch for graceful error handling
+- ✓ Plugins cannot access dangerous globals
+
+**Developer Responsibility ⚠️**
+
+Plugin developers **must validate and sanitize** all inputs in their `execute()` method:
+
+```js
+// ✓ SECURE: Properly validated plugin
+export const securePlugin = {
   name: 'format',
-  execute(value) {
-    // Validate and sanitize input
-    if (typeof value !== 'string') return '';
-    return value.replace(/[<>&"']/g, char => ({
+  
+  execute(value, options = {}) {
+    // 1. Type validation
+    if (typeof value !== 'string') {
+      console.warn('Invalid input type, expected string');
+      return '';
+    }
+    
+    // 2. Length validation
+    if (value.length > 10000) {
+      console.warn('Input too long');
+      return value.substring(0, 10000);
+    }
+    
+    // 3. Sanitization (if needed for your use case)
+    const sanitized = value.replace(/[<>&"']/g, char => ({
       '<': '&lt;', '>': '&gt;', '&': '&amp;',
       '"': '&quot;', "'": '&#39;'
     })[char]);
+    
+    // 4. Safe processing
+    return sanitized.toUpperCase();
+  }
+};
+
+// ✗ INSECURE: No validation
+export const insecurePlugin = {
+  name: 'unsafe',
+  execute(value) {
+    // Dangerous: No type checking, no validation
+    return value.toUpperCase(); // Crashes if value is not a string
   }
 };
 ```
 
-This security model makes rendux suitable for applications handling user-generated content while maintaining the flexibility of a templating engine.
+**Plugin Security Checklist**
+
+When creating plugins, ensure you:
+
+1. ✓ **Validate input types** - Check `typeof` before processing
+2. ✓ **Validate input length** - Prevent resource exhaustion
+3. ✓ **Sanitize if needed** - Escape special characters for your use case
+4. ✓ **Handle errors gracefully** - Use try-catch to prevent crashes
+5. ✓ **Return safe values** - Always return strings or values that convert to string
+6. ✓ **Document requirements** - Clearly document expected input types and formats
+7. ✓ **Avoid DOM manipulation** - Minimize direct DOM changes outside the element
+8. ✓ **Test with malicious input** - Test with XSS payloads, large inputs, invalid types
+
+#### Security Guarantees
+
+| Feature | Core Engine | Plugin System |
+|---------|-------------|---------------|
+| XSS Prevention | ✓ Guaranteed | ✓ Framework protected, ⚠️ validate inputs |
+| Code Injection | ✓ Blocked | ✓ Blocked |
+| HTML Escaping | ✓ Automatic | ✓ Automatic |
+| Global Access | ✓ Whitelisted only | ✓ Whitelisted only |
+| Expression Safety | ✓ Sandboxed | ✓ Sandboxed |
+| Input Validation | ✓ Type-checked | ⚠️ Developer responsibility |
+
+**Verdict**: rendux provides a **secure foundation** for web applications. The core engine is hardened against XSS and code injection attacks. Plugin developers must follow security best practices and validate all inputs to maintain the security guarantee.
 
 ## License
 
